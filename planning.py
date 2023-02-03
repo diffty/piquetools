@@ -148,11 +148,14 @@ def find_next_show(t: datetime.datetime) -> dict:
             return timetable[i]
 
 
+def time_before_show(show: dict) -> float:
+        return (show["start"] - datetime.datetime.now()).total_seconds()
+
+
 if __name__ == '__main__':
     timetable = get_timetable_from_sheet(config.SHEET_ID, 'Semaine 30/01-05/02')
-    t = datetime.datetime(year=2023, month=1, day=30, hour=19, minute=14)
-
-    for interval in timetable:
-        if interval["start"] < t and interval["end"] > t:
-            print(interval)
-
+    t = datetime.datetime(year=2023, month=1, day=30, hour=4, minute=14)
+    print(find_current_show(t))
+    next_show = find_next_show(datetime.datetime.now())
+    print(next_show)
+    print(time_before_show(next_show))
