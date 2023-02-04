@@ -1,5 +1,6 @@
 import datetime
 import asyncio
+import traceback
 
 from typing import DefaultDict, List
 
@@ -80,15 +81,20 @@ class Bot(commands.Bot):
         while self.running:
             print(f"Waiting {self.time_before_next_auto_check}s before next check.")
             await asyncio.sleep(self.time_before_next_auto_check)
+ 
+            try:
+                next_show = planning.find_next_show(datetime.datetime.now())
+                print(f"Next show will begin in {planning.time_before_show(next_show)}.")
+                
+                if next_show is not None and planning.time_before_show(next_show) < AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW:
+                    await self.auto_update_title()
+                    self.time_before_next_auto_check = AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW
+                else:
+                    self.time_before_next_auto_check = AUTO_UPDATE_TIME
+            except Exception as e:
+                curr_time_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                print(f"[{curr_time_str}] Error during auto-check :\n{traceback.format_exc()}")
 
-            next_show = planning.find_next_show(datetime.datetime.now())
-            print(f"Next show will begin in {planning.time_before_show(next_show)}.")
-            
-            if next_show is not None and planning.time_before_show(next_show) < AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW:
-                await self.auto_update_title()
-                self.time_before_next_auto_check = AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW
-            else:
-                self.time_before_next_auto_check = AUTO_UPDATE_TIME
     
     
 if __name__ == "__main__":
