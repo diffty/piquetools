@@ -14,6 +14,7 @@ import planning
 
 AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW = 5 * 60
 AUTO_UPDATE_TIME = 3 * 60
+AUTO_UPDATE_FAIL = 1 * 60
 
 
 def assert_user_is_mod(ctx):
@@ -55,16 +56,23 @@ class Bot(commands.Bot):
 
         if next_show is not None and planning.time_before_show(next_show) < AUTO_UPDATE_TIME_BEFORE_NEXT_SHOW:
             await self.update_title_for_show(next_show)
+            await self.update_game_for_show(next_show)
         else:
             curr_show = planning.find_current_show(datetime.datetime.now())
             if curr_show:
                 await self.update_title_for_show(curr_show)
+                await self.update_game_for_show(curr_show)
             elif next_show is not None:
                 await self.update_title_for_show(next_show)
+                await self.update_game_for_show(next_show)
         
     async def update_title_for_show(self, show: dict):
         for channel in self.connected_channels:
             await channel.send(f'!settitle {show["title"]} avec {show["streamer"]} !dons')
+        
+    async def update_game_for_show(self, show: dict):
+        for channel in self.connected_channels:
+            await channel.send(f'!setgame {show["category"]}')
         
     def get_announce_for_next_show(self, show: dict):
         return f'Prochain live : {self.get_announce_from_show_data(show)}'
@@ -94,9 +102,10 @@ class Bot(commands.Bot):
             except Exception as e:
                 curr_time_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
                 print(f"[{curr_time_str}] Error during auto-check :\n{traceback.format_exc()}")
+                self.time_before_next_auto_check = AUTO_UPDATE_FAIL
 
     
-    
+
 if __name__ == "__main__":
     bot = Bot()
     bot.run()

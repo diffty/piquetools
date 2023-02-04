@@ -65,7 +65,7 @@ def get_timetable_from_sheet(sheet_id, sheet_name):
         # Call the Sheets API
         sheet = service.spreadsheets()
         result = sheet.values().get(spreadsheetId=sheet_id,
-                                    range=f"'{sheet_name}'!A:C").execute()
+                                    range=f"'{sheet_name}'!A:D").execute()
 
         values = result.get('values', [])
 
@@ -94,6 +94,10 @@ def get_timetable_from_sheet(sheet_id, sheet_name):
                 if len(row) > 1:
                     title = row[1]
                     streamer = row[2]
+                    if len(row) >= 4:
+                        category = row[3]
+                    else:
+                        category = "Discussions"
 
                     start_date = datetime.datetime(year=datetime.datetime.now().year, month=int(curr_parse_month), day=int(curr_parse_day), hour=int(curr_parse_interval[0]), minute=int(curr_parse_interval[1]))
                     delta_date = datetime.timedelta(hours=int(curr_parse_interval[2])-int(curr_parse_interval[0]), minutes=int(curr_parse_interval[3])-int(curr_parse_interval[1]))
@@ -111,6 +115,7 @@ def get_timetable_from_sheet(sheet_id, sheet_name):
                             "end": None,
                             "title": None,
                             "streamer": None,
+                            "category": None,
                         }
 
                     if curr_interval["start"] is None:
@@ -118,6 +123,7 @@ def get_timetable_from_sheet(sheet_id, sheet_name):
                         curr_interval["end"] = copy.deepcopy(start_date)
                         curr_interval["title"] = title
                         curr_interval["streamer"] = streamer
+                        curr_interval["category"] = category
 
                     curr_interval["end"] += delta_date
                 else:
